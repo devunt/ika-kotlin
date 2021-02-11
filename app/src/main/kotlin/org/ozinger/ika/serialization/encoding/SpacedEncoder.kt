@@ -5,7 +5,8 @@ import kotlinx.serialization.encoding.AbstractEncoder
 import org.ozinger.ika.serialization.context
 
 class SpacedEncoder : AbstractEncoder() {
-    override val serializersModule = context
+    override val serializersModule
+        get() = context
 
     private val list = mutableListOf<String>()
     private var trailing = false

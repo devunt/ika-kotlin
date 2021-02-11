@@ -3,10 +3,11 @@ package org.ozinger.ika.serialization.encoding
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.CompositeDecoder
-import kotlinx.serialization.modules.EmptySerializersModule
+import org.ozinger.ika.serialization.context
 
 class PacketDecoder(value: String) : AbstractDecoder() {
-    override val serializersModule = EmptySerializersModule
+    override val serializersModule
+        get() = context
 
     private val hasSender = value.startsWith(":")
     private var elementIndex = if (hasSender) 0 else 1
@@ -22,7 +23,7 @@ class PacketDecoder(value: String) : AbstractDecoder() {
     }
 
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
-        if (elementIndex == descriptor.elementsCount) return CompositeDecoder.DECODE_DONE
+        if (elementIndex >= descriptor.elementsCount) return CompositeDecoder.DECODE_DONE
         return elementIndex++
     }
 }
