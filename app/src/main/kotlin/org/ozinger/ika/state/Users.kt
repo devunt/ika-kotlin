@@ -17,6 +17,9 @@ object Users {
     }
 
     fun del(userId: UniversalUserId) {
+        get(userId).joinedChannels.forEach {
+            Channels.leaveUser(it, userId)
+        }
         users.remove(userId)
     }
 }

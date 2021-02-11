@@ -3,19 +3,11 @@ package org.ozinger.ika.definition
 data class Mode(
     val mode: Char,
     val param: String? = null,
-)
+) {
+    var isMemberMode = false
+}
 
 typealias Modes = MutableSet<Mode>
-
-fun Modes.applyModification(modeModification: ModeModification) {
-    modeModification.adding?.forEach {
-        this.add(it)
-    }
-
-    modeModification.removing?.forEach {
-        this.remove(it)
-    }
-}
 
 data class ModeModification(
     val adding: Set<Mode>? = null,

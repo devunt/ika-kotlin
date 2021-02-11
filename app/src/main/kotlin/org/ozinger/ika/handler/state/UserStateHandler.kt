@@ -26,7 +26,7 @@ class UserStateHandler : IHandler {
                     command.signonAt,
                     command.realname,
                 ).apply {
-                    modes.applyModification(command.modeModification)
+                    applyModeModification(command.modeModification)
                 }
             )
         }
@@ -67,7 +67,7 @@ class UserStateHandler : IHandler {
         private fun changeMode(target: Identifier, modeModification: ModeModification) {
             if (target is UniversalUserId) {
                 val user = Users.get(target)
-                user.modes.applyModification(modeModification)
+                user.applyModeModification(modeModification)
             }
         }
 

@@ -31,7 +31,7 @@ open class TrailingModeModificationSerializer(modeProperty: KProperty0<ModeDefin
                             false
                         }
                     ) {
-                        current.add(Mode(c, tokens.removeFirst()))
+                        current.add(Mode(c, tokens.removeFirst()).apply { isMemberMode = true })
                     } else {
                         current.add(Mode(c))
                     }

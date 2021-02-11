@@ -12,12 +12,24 @@ data class User(
     val ipAddress: String,
     val signonAt: LocalDateTime,
     var realname: String,
-) {
+) : AbstractIRCEntity() {
+    val mask: String
+        get() = "$nickname!$ident@$displayedHost"
+
     var operType: OperType? = null
     var away: String? = null
 
-    val metadata = mutableMapOf<String, String>()
-    val modes: Modes = mutableSetOf()
+    val joinedChannels = mutableSetOf<ChannelName>()
 
     fun shouldBeApplied(other: LocalDateTime) = timestamp >= other
+
+    override fun applyModeModification(modeModification: ModeModification) {
+        modeModification.adding?.forEach {
+            modes.add(it)
+        }
+
+        modeModification.removing?.forEach {
+            modes.remove(it)
+        }
+    }
 }

@@ -9,6 +9,7 @@ import kotlinx.serialization.UseSerializers
 import org.ozinger.ika.definition.*
 import org.ozinger.ika.serialization.serializer.DurationSerializer
 import org.ozinger.ika.serialization.serializer.LocalDateTimeSerializer
+import org.ozinger.ika.serialization.serializer.MemberModeModificationSerializer
 import org.ozinger.ika.serialization.serializer.ModeModificationSerializer
 import org.ozinger.ika.state.ModeDefinitions
 import java.time.Duration
@@ -111,14 +112,14 @@ data class SVSNICK(val targetUserId: UniversalUserId, val nickname: String, val 
 data class FJOIN(
     val channelName: ChannelName,
     val timestamp: LocalDateTime,
-    @Serializable(with = ChannelModeModificationSerializer::class) val modeModification: ModeModification,
-    val members: String
+    @Serializable(with = ChannelModeModificationSerializer::class) val channelModeModification: ModeModification,
+    @Serializable(with = MemberModeModificationSerializer::class) val memberModeModification: ModeModification,
 ) :
     Command()
 
 @Serializable
 @SerialName("FTOPIC")
-data class FTOPIC(val channelName: ChannelName, val addedAt: LocalDateTime, val setter: String, val content: String) :
+data class FTOPIC(val channelName: ChannelName, val settedAt: LocalDateTime, val setter: String, val content: String) :
     Command()
 
 
