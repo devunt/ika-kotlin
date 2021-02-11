@@ -1,8 +1,10 @@
 package org.ozinger.ika.networking
 
+import kotlinx.serialization.Serializable
 import org.ozinger.ika.definition.ServerId
 import org.ozinger.ika.definition.UniversalUserId
 
+@Serializable
 sealed class Origin {
     data class Server(val serverId: ServerId) : Origin() {
         companion object {

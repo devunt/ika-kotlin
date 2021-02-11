@@ -16,16 +16,15 @@ import org.ozinger.ika.networking.Serializers
 
 class PacketSerializer : KSerializer<Packet> {
     override val descriptor = buildClassSerialDescriptor("Packet") {
-        element<String>("sender")
-        element<String>("command")
+        element<Origin>("origin")
+        element<Command>("command")
     }
 
     override fun serialize(encoder: Encoder, value: Packet) = encoder.encodeStructure(descriptor) {
-
         when (value.origin) {
             is Origin.Server -> encodeStringElement(descriptor, 0, ":${value.origin.serverId.value}")
             is Origin.User -> encodeStringElement(descriptor, 0, ":${value.origin.userId.value}")
-            is Origin.Direct -> {
+            Origin.Direct -> {
             }
         }
         encodeSerializableElement(descriptor, 1, serializer(), value.command)
