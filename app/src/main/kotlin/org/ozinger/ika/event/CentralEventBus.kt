@@ -8,7 +8,7 @@ import org.ozinger.ika.networking.Packet
 
 object CentralEventBus {
     object Incoming {
-        private val channel = Channel<Packet>()
+        private val channel = Channel<Packet>(Channel.RENDEZVOUS)
 
         suspend fun get() = channel.receive()
 
@@ -18,7 +18,7 @@ object CentralEventBus {
     }
 
     object Outgoing {
-        private val channel = Channel<Packet>()
+        private val channel = Channel<Packet>(Channel.RENDEZVOUS)
 
         suspend fun get() = channel.receive()
 
