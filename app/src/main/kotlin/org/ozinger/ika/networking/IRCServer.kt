@@ -6,6 +6,8 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import org.ozinger.ika.command.PING
+import org.ozinger.ika.command.PONG
 import org.ozinger.ika.command.SERVER
 import org.ozinger.ika.definition.ServerId
 import org.ozinger.ika.event.CentralEventBus
@@ -47,7 +49,9 @@ class IRCServer(
             val line = reader.readUTF8Line()
             if (line.isNullOrEmpty()) continue
             val packet = Serializers.decodePacketFromString(line)
-            println(">>> $packet")
+            if (packet.command !is PING) {
+                println(">>> $packet")
+            }
             CentralEventBus.Incoming.received(packet)
         }
     }
@@ -59,7 +63,9 @@ class IRCServer(
             if (packet.origin == Origin.Server.MYSELF) {
                 packet = Packet(Origin.Server(id), packet.command)
             }
-            println("<<< $packet")
+            if (packet.command !is PONG) {
+                println("<<< $packet")
+            }
             writer.writeStringUtf8(Serializers.encodePacketToString(packet) + "\n")
         }
     }
