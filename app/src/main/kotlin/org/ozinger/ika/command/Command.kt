@@ -2,14 +2,20 @@
 
 package org.ozinger.ika.command
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import org.ozinger.ika.definition.*
 import org.ozinger.ika.serialization.serializer.DurationSerializer
 import org.ozinger.ika.serialization.serializer.LocalDateTimeSerializer
+import org.ozinger.ika.serialization.serializer.ModeModificationSerializer
+import org.ozinger.ika.state.ModeDefinitions
 import java.time.Duration
 import java.time.LocalDateTime
+
+object ChannelModeModificationSerializer : ModeModificationSerializer(ModeDefinitions::channel)
+object UserModeModificationSerializer : ModeModificationSerializer(ModeDefinitions::user)
 
 @Serializable
 sealed class Command {
@@ -91,7 +97,8 @@ data class PUSH(val targetUserId: UniversalUserId, val textCommand: String) : Co
 data class UID(
     val userId: UniversalUserId, val timestamp: LocalDateTime, val nickname: String,
     val host: String, val displayedHost: String, val ident: String,
-    val ipAddress: String, val signonAt: LocalDateTime, val mode: Mode,
+    val ipAddress: String, val signonAt: LocalDateTime,
+    @Serializable(with = UserModeModificationSerializer::class) val modeModification: ModeModification,
     val realname: String
 ) : Command()
 
@@ -101,7 +108,12 @@ data class SVSNICK(val userId: UniversalUserId, val nickname: String, val timest
 
 @Serializable
 @SerialName("FJOIN")
-data class FJOIN(val channelName: ChannelName, val timestamp: LocalDateTime, val mode: Mode, val members: String) :
+data class FJOIN(
+    val channelName: ChannelName,
+    val timestamp: LocalDateTime,
+    @Serializable(with = ChannelModeModificationSerializer::class) val modeModification: ModeModification,
+    val members: String
+) :
     Command()
 
 @Serializable
@@ -117,7 +129,10 @@ data class METADATA(val target: Identifier, val type: String, val value: String)
 
 @Serializable
 @SerialName("FMODE")
-data class FMODE(val target: Identifier, val timestamp: LocalDateTime, val mode: Mode) : Command()
+data class FMODE(
+    val target: Identifier, val timestamp: LocalDateTime,
+    @Contextual val modeModification: ModeModification
+) : Command()
 
 
 ///////////////////////// User Commands /////////////////////////
@@ -147,7 +162,10 @@ data class NICK(val nickname: String, val timestamp: LocalDateTime) : Command()
 
 @Serializable
 @SerialName("MODE")
-data class MODE(val targetUserId: UniversalUserId, val mode: Mode) : Command()
+data class MODE(
+    val targetUserId: UniversalUserId,
+    @Serializable(with = UserModeModificationSerializer::class) val modeModification: ModeModification
+) : Command()
 
 @Serializable
 @SerialName("TOPIC")

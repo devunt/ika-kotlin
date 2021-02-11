@@ -7,6 +7,9 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import org.ozinger.ika.definition.*
+import org.ozinger.ika.serialization.channelContext
+import org.ozinger.ika.serialization.context
+import org.ozinger.ika.serialization.userContext
 
 class IdentifierSerializer : KSerializer<Identifier> {
     override val descriptor = PrimitiveSerialDescriptor("Identifier", PrimitiveKind.STRING)
@@ -17,10 +20,14 @@ class IdentifierSerializer : KSerializer<Identifier> {
 
         return when {
             value == "*" -> Wildcard()
-            value.startsWith('#') -> ChannelName(value)
+            value.startsWith('#') -> {
+                context = channelContext; ChannelName(value)
+            }
             value.length == 3 -> ServerId(value)
             value.length == 6 -> ServerUserId(value)
-            value.length == 9 -> UniversalUserId(value)
+            value.length == 9 -> {
+                context = userContext; UniversalUserId(value)
+            }
             else -> throw SerializationException("Invalid identifier")
         }
     }
