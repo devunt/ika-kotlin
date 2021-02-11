@@ -28,7 +28,7 @@ class HandshakeHandler : IHandler {
 
         @Handler
         suspend fun capabilities(origin: Origin.Direct, command: CAPAB) {
-            if (command.type != CapabilityType.Capabilities) {
+            if (command.type != CapabilityType.CAPABILITIES) {
                 return
             }
 

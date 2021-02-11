@@ -7,7 +7,8 @@ object OperTypeSerializer : EnumValueSerializer<OperType>(OperType::class, OperT
 
 @Serializable(with = OperTypeSerializer::class)
 enum class OperType(override val value: String) : ValuedEnum {
-    NetAdmin("NetAdmin"),
-    Bot("Bot"),
+    NETADMIN("NetAdmin"),
+    SERVICE("Services"),
+    BOT("Bot"),
     Unknown(""),
 }
