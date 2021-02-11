@@ -2,10 +2,7 @@ package org.ozinger.ika.handler.state
 
 import org.ozinger.ika.annotation.Handler
 import org.ozinger.ika.command.*
-import org.ozinger.ika.definition.Mode
-import org.ozinger.ika.definition.UniversalUserId
-import org.ozinger.ika.definition.User
-import org.ozinger.ika.definition.applyModification
+import org.ozinger.ika.definition.*
 import org.ozinger.ika.event.CentralEventBus
 import org.ozinger.ika.handler.IHandler
 import org.ozinger.ika.networking.Origin
@@ -28,7 +25,9 @@ class UserStateHandler : IHandler {
                     command.ipAddress,
                     command.signonAt,
                     command.realname,
-                )
+                ).apply {
+                    modes.applyModification(command.modeModification)
+                }
             )
         }
 
@@ -51,17 +50,25 @@ class UserStateHandler : IHandler {
         }
 
         @Handler
-        suspend fun modeChange(origin: Origin.User, command: FMODE) {
-            if (command.target is UniversalUserId) {
-                val user = Users.get(command.target)
-                user.modes.applyModification(command.modeModification)
-            }
+        suspend fun fmodeChangeUser(origin: Origin.User, command: FMODE) {
+            changeMode(command.target, command.modeModification)
         }
 
         @Handler
-        suspend fun userModeChange(origin: Origin.User, command: MODE) {
-            val user = Users.get(command.targetUserId)
-            user.modes.applyModification(command.modeModification)
+        suspend fun fmodeChangeServer(origin: Origin.Server, command: FMODE) {
+            changeMode(command.target, command.modeModification)
+        }
+
+        @Handler
+        suspend fun modeChange(origin: Origin.User, command: MODE) {
+            changeMode(command.targetUserId, command.modeModification)
+        }
+
+        private fun changeMode(target: Identifier, modeModification: ModeModification) {
+            if (target is UniversalUserId) {
+                val user = Users.get(target)
+                user.modes.applyModification(modeModification)
+            }
         }
 
         @Handler
@@ -77,12 +84,14 @@ class UserStateHandler : IHandler {
         }
 
         @Handler
-        suspend fun metadataChange(origin: Origin.User, command: METADATA) {
-            val user = Users.get(origin.userId)
-            if (command.value.isNullOrBlank()) {
-                user.metadata.remove(command.type)
-            } else {
-                user.metadata[command.type] = command.value
+        suspend fun metadataChange(origin: Origin.Server, command: METADATA) {
+            if (command.target is UniversalUserId) {
+                val user = Users.get(command.target)
+                if (command.value.isNullOrBlank()) {
+                    user.metadata.remove(command.type)
+                } else {
+                    user.metadata[command.type] = command.value
+                }
             }
         }
 
