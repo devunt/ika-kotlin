@@ -104,7 +104,7 @@ data class UID(
 
 @Serializable
 @SerialName("SVSNICK")
-data class SVSNICK(val userId: UniversalUserId, val nickname: String, val timestamp: LocalDateTime) : Command()
+data class SVSNICK(val targetUserId: UniversalUserId, val nickname: String, val timestamp: LocalDateTime) : Command()
 
 @Serializable
 @SerialName("FJOIN")
@@ -125,7 +125,7 @@ data class FTOPIC(val channelName: ChannelName, val addedAt: LocalDateTime, val 
 ///////////////////////// Server & User Commands /////////////////////////
 @Serializable
 @SerialName("METADATA")
-data class METADATA(val target: Identifier, val type: String, val value: String) : Command()
+data class METADATA(val target: Identifier, val type: String, val value: String? = null) : Command()
 
 @Serializable
 @SerialName("FMODE")
@@ -146,7 +146,11 @@ data class OPERTYPE(val type: OperType) : Command()
 
 @Serializable
 @SerialName("IDLE")
-data class IDLE(val userId: UniversalUserId, val signonAt: LocalDateTime? = null, val duration: Duration) : Command()
+data class IDLE(
+    val targetUserId: UniversalUserId,
+    val signonAt: LocalDateTime? = null,
+    val duration: Duration? = null
+) : Command()
 
 @Serializable
 @SerialName("FHOST")
