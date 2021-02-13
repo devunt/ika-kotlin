@@ -42,14 +42,3 @@ fun main() = runBlocking<Unit> {
     app.start()
 }
 
-//    val c = TEST("hello", 3, "bad boy")
-//    val s = Serializers.encodePacketToString(Packet(Sender.Server("1KA"), c))
-//    println(s)
-//
-//    val d = Serializers.decodePacketFromString(s)
-//    println(d)
-
-//    FJOIN("hello", 1)
-
-//    val c = CAPAB("END")
-//    println(Serializers.encodeCommandToString(c))
