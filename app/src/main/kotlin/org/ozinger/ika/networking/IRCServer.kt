@@ -29,9 +29,8 @@ class IRCServer(
     }
 
     suspend fun introduceMyself() {
-        CentralEventBus.Outgoing.send(
-            Packet(
-                Origin.Direct,
+        CentralEventBus.Outgoing.send {
+            sendDirect(
                 SERVER(
                     name = name,
                     password = password,
@@ -40,7 +39,7 @@ class IRCServer(
                     description = description,
                 )
             )
-        )
+        }
     }
 
     private suspend fun receivePackets() {
