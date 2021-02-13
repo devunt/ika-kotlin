@@ -2,24 +2,37 @@ package org.ozinger.ika.serialization.serializer
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import kotlinx.serialization.descriptors.element
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.encoding.encodeStructure
 import org.ozinger.ika.definition.Mode
 import org.ozinger.ika.definition.ModeModification
 import org.ozinger.ika.definition.Modes
+import org.ozinger.ika.serialization.ModeStringDescriptor
 import org.ozinger.ika.state.ModeDefinitions
 
 open class MemberModeModificationSerializer : KSerializer<ModeModification> {
-    override val descriptor = buildClassSerialDescriptor("MemberModeModification") {
-        element<String>("modes")
-    }
+    override val descriptor = ModeStringDescriptor("MemberModeModification")
 
     private val modeDefinition by lazy { ModeDefinitions::member.get() }
 
-    override fun serialize(encoder: Encoder, value: ModeModification) {
-        throw NotImplementedError()
+    override fun serialize(encoder: Encoder, value: ModeModification) = encoder.encodeStructure(descriptor) {
+        val memberModes = mutableMapOf<String, MutableSet<Char>>()
+
+        value.adding?.forEach { mode ->
+            val set = memberModes.getOrPut(mode.param!!, ::mutableSetOf)
+            if (mode.mode != ' ') set.add(mode.mode)
+        }
+
+        val memberString = memberModes.map { (uuid, modes) ->
+            StringBuilder().apply {
+                modes.map(::append)
+                append(",")
+                append(uuid)
+            }.toString()
+        }.joinToString(" ")
+
+        encodeStringElement(descriptor, 0, ":$memberString")
     }
 
     override fun deserialize(decoder: Decoder): ModeModification {
