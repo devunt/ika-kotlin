@@ -1,19 +1,17 @@
 plugins {
     kotlin("jvm")
     kotlin("kapt")
-    kotlin("plugin.serialization") version "1.4.21"
+    kotlin("plugin.serialization") version "1.4.30"
 
     application
     idea
 }
 
 dependencies {
-    implementation(kotlin("stdlib-jdk8"))
-    implementation(kotlin("reflect"))
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.0.1")
 
     compileOnly(project(":annotation"))
-    kapt(project(":annotation"))
+    kapt(project(":annotation-processor"))
 
     implementation("io.ktor:ktor-network:1.5.1")
     implementation("org.koin:koin-core:2.2.2")
@@ -40,7 +38,6 @@ idea {
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions {
-        jvmTarget = "15"
         freeCompilerArgs += listOf(
             "-Xuse-experimental=kotlinx.coroutines.ExperimentalCoroutinesApi",
             "-Xuse-experimental=kotlinx.serialization.ExperimentalSerializationApi",
