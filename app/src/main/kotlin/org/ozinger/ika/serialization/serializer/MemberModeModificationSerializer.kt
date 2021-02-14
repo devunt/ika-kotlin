@@ -5,16 +5,18 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.encodeStructure
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.ozinger.ika.definition.Mode
 import org.ozinger.ika.definition.ModeModification
 import org.ozinger.ika.definition.Modes
 import org.ozinger.ika.serialization.ModeStringDescriptor
-import org.ozinger.ika.state.ModeDefinitions
+import org.ozinger.ika.state.ModeDefinitionProvider
 
-open class MemberModeModificationSerializer : KSerializer<ModeModification> {
-    override val descriptor = ModeStringDescriptor("MemberModeModification")
+class MemberModeModificationSerializer : KSerializer<ModeModification>, KoinComponent {
+    override val descriptor = ModeStringDescriptor("MemberModeModification", trailing = true)
 
-    private val modeDefinition by lazy { ModeDefinitions::member.get() }
+    private val modeDefinitionProvider: ModeDefinitionProvider by inject()
 
     override fun serialize(encoder: Encoder, value: ModeModification) = encoder.encodeStructure(descriptor) {
         val memberModes = mutableMapOf<String, MutableSet<Char>>()
@@ -32,7 +34,7 @@ open class MemberModeModificationSerializer : KSerializer<ModeModification> {
             }.toString()
         }.joinToString(" ")
 
-        encodeStringElement(descriptor, 0, ":$memberString")
+        encodeStringElement(descriptor, 0, memberString)
     }
 
     override fun deserialize(decoder: Decoder): ModeModification {
@@ -42,7 +44,7 @@ open class MemberModeModificationSerializer : KSerializer<ModeModification> {
         for (member in members) {
             val (modes, uuid) = member.split(",")
             for (mode in modes) {
-                if (mode !in modeDefinition.parameterized) {
+                if (mode !in modeDefinitionProvider.member.parameterized) {
                     throw SerializationException("Invalid member mode: $mode")
                 }
                 adding.add(Mode(mode, uuid).apply { isMemberMode = true })

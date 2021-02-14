@@ -6,43 +6,52 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.ozinger.ika.command.PING
 import org.ozinger.ika.command.PONG
 import org.ozinger.ika.command.SERVER
 import org.ozinger.ika.definition.ServerId
-import org.ozinger.ika.event.CentralEventBus
+import org.ozinger.ika.event.PacketReceiver
+import org.ozinger.ika.event.PacketSender
+import java.nio.ByteBuffer
 
 class IRCServer(
-    id: String,
+    private val id: ServerId,
     private val name: String,
     private val description: String,
     private val password: String,
-) {
-    private val id = ServerId(id)
+) : KoinComponent {
+    private val packetSender: PacketSender by inject()
+    private val packetReceiver: PacketReceiver by inject()
+
     private lateinit var socket: Socket
 
     suspend fun connect(host: String, port: Int) = coroutineScope<Unit> {
         socket = aSocket(ActorSelectorManager(Dispatchers.IO)).tcp().connect(host, port)
 
-        launch { receivePackets() }
-        launch { sendPackets() }
+        launch { packetReceivingLoop() }
+        launch { packetSendingLoop() }
     }
 
     suspend fun introduceMyself() {
-        CentralEventBus.Outgoing.send {
-            sendDirect(
-                SERVER(
-                    name = name,
-                    password = password,
-                    distance = 0,
-                    sid = id,
-                    description = description,
-                )
+        packetSender.sendDirect(
+            SERVER(
+                name = name,
+                password = password,
+                distance = 0,
+                sid = id,
+                description = description,
             )
-        }
+        )
     }
 
-    private suspend fun receivePackets() {
+    private suspend fun packetReceivingLoop() {
+        val newlines = listOf(
+            '\r'.toByte(),
+            '\n'.toByte(),
+        )
+
         val reader = socket.openReadChannel()
         while (!reader.isClosedForRead) {
             val line = reader.readUTF8Line()
@@ -51,21 +60,18 @@ class IRCServer(
             if (packet.command !is PING) {
                 println(">>> $packet")
             }
-            CentralEventBus.Incoming.received(packet)
+            packetReceiver.put(packet)
         }
     }
 
-    private suspend fun sendPackets() {
+    private suspend fun packetSendingLoop() {
         val writer = socket.openWriteChannel(autoFlush = true)
         while (true) {
-            var packet = CentralEventBus.Outgoing.get()
-            if (packet.origin == Origin.Server.MYSELF) {
-                packet = Packet(Origin.Server(id), packet.command)
-            }
+            val packet = packetSender.get()
             if (packet.command !is PONG) {
                 println("<<< $packet")
             }
-            writer.writeStringUtf8(Serializers.encodePacketToString(packet) + "\n")
+            writer.writeStringUtf8(Serializers.encodePacketToString(packet) + "\r\n")
         }
     }
 }

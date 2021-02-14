@@ -11,12 +11,12 @@ import org.ozinger.ika.serialization.serializer.DurationSerializer
 import org.ozinger.ika.serialization.serializer.LocalDateTimeSerializer
 import org.ozinger.ika.serialization.serializer.MemberModeModificationSerializer
 import org.ozinger.ika.serialization.serializer.ModeModificationSerializer
-import org.ozinger.ika.state.ModeDefinitions
+import org.ozinger.ika.state.ModeDefinitionProvider
 import java.time.Duration
 import java.time.LocalDateTime
 
-object ChannelModeModificationSerializer : ModeModificationSerializer(ModeDefinitions::channel)
-object UserModeModificationSerializer : ModeModificationSerializer(ModeDefinitions::user)
+object ChannelModeModificationSerializer : ModeModificationSerializer(ModeDefinitionProvider::channel)
+object UserModeModificationSerializer : ModeModificationSerializer(ModeDefinitionProvider::user)
 
 @Serializable
 sealed class Command {

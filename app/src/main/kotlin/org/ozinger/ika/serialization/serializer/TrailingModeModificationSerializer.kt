@@ -2,10 +2,10 @@ package org.ozinger.ika.serialization.serializer
 
 import kotlinx.serialization.encoding.Decoder
 import org.ozinger.ika.definition.*
-import org.ozinger.ika.state.ModeDefinitions
-import kotlin.reflect.KProperty0
+import org.ozinger.ika.state.ModeDefinitionProvider
+import kotlin.reflect.KProperty1
 
-open class TrailingModeModificationSerializer(modeProperty: KProperty0<ModeDefinition>) :
+open class TrailingModeModificationSerializer(modeProperty: KProperty1<ModeDefinitionProvider, ModeDefinition>) :
     ModeModificationSerializer(modeProperty) {
     override fun deserialize(decoder: Decoder): ModeModification {
         val adding: Modes = mutableSetOf()
@@ -25,7 +25,7 @@ open class TrailingModeModificationSerializer(modeProperty: KProperty0<ModeDefin
                 else -> {
                     if (c in modeDefinition.stackable || c in modeDefinition.parameterized || (current == adding && c in modeDefinition.parameterizedAdd)) {
                         current.add(Mode(c, tokens.removeFirst()))
-                    } else if (c in ModeDefinitions.member.parameterized && try {
+                    } else if (c in modeDefinitionProvider.member.parameterized && try {
                             UniversalUserId(tokens.first()); true
                         } catch (e: IllegalArgumentException) {
                             false

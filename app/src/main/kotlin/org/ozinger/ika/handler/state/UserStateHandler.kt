@@ -3,130 +3,117 @@ package org.ozinger.ika.handler.state
 import org.ozinger.ika.annotation.Handler
 import org.ozinger.ika.command.*
 import org.ozinger.ika.definition.*
-import org.ozinger.ika.event.CentralEventBus
-import org.ozinger.ika.handler.IHandler
-import org.ozinger.ika.networking.Origin
+import org.ozinger.ika.handler.AbstractHandler
 import org.ozinger.ika.state.Users
 import java.time.Duration
 
 @Handler
-class UserStateHandler : IHandler {
-    companion object {
-        @Handler
-        suspend fun newUser(origin: Origin.Server, command: UID) {
-            Users.add(
-                User(
-                    command.userId,
-                    command.timestamp,
-                    command.nickname,
-                    command.host,
-                    command.displayedHost,
-                    command.ident,
-                    command.ipAddress,
-                    command.signonAt,
-                    command.realname,
-                ).apply {
-                    applyModeModification(command.modeModification)
-                }
-            )
-        }
-
-        @Handler
-        suspend fun nicknameChange(origin: Origin.User, command: NICK) {
-            val user = Users.get(origin.userId)
-            user.nickname = command.nickname
-        }
-
-        @Handler
-        suspend fun displayedHostChange(origin: Origin.User, command: FHOST) {
-            val user = Users.get(origin.userId)
-            user.displayedHost = command.displayedHost
-        }
-
-        @Handler
-        suspend fun realnameChange(origin: Origin.User, command: FNAME) {
-            val user = Users.get(origin.userId)
-            user.realname = command.realname
-        }
-
-        @Handler
-        suspend fun fmodeChangeUser(origin: Origin.User, command: FMODE) {
-            changeMode(command.target, command.modeModification)
-        }
-
-        @Handler
-        suspend fun fmodeChangeServer(origin: Origin.Server, command: FMODE) {
-            changeMode(command.target, command.modeModification)
-        }
-
-        @Handler
-        suspend fun modeChange(origin: Origin.User, command: MODE) {
-            changeMode(command.targetUserId, command.modeModification)
-        }
-
-        private fun changeMode(target: Identifier, modeModification: ModeModification) {
-            if (target is UniversalUserId) {
-                val user = Users.get(target)
-                user.applyModeModification(modeModification)
+class UserStateHandler : AbstractHandler() {
+    @Handler
+    fun userConnected(sender: ServerId, command: UID) {
+        Users.add(
+            User(
+                command.userId,
+                command.timestamp,
+                command.nickname,
+                command.host,
+                command.displayedHost,
+                command.ident,
+                command.ipAddress,
+                command.signonAt,
+                command.realname,
+            ).apply {
+                applyModeModification(command.modeModification)
             }
-        }
+        )
+    }
 
-        @Handler
-        suspend fun serviceNickChange(origin: Origin.Server, command: SVSNICK) {
+    @Handler
+    fun nicknameChanged(sender: UniversalUserId, command: NICK) {
+        val user = Users.get(sender)
+        user.nickname = command.nickname
+    }
+
+    @Handler
+    fun displayedHostChanged(sender: UniversalUserId, command: FHOST) {
+        val user = Users.get(sender)
+        user.displayedHost = command.displayedHost
+    }
+
+    @Handler
+    fun realnameChanged(sender: UniversalUserId, command: FNAME) {
+        val user = Users.get(sender)
+        user.realname = command.realname
+    }
+
+    @Handler
+    fun fmodeChanged(sender: Identifier, command: FMODE) {
+        applyModeModifitication(command.target, command.modeModification)
+    }
+
+    @Handler
+    fun modeChanged(sender: UniversalUserId, command: MODE) {
+        applyModeModifitication(command.targetUserId, command.modeModification)
+    }
+
+    private fun applyModeModifitication(target: Identifier, modeModification: ModeModification) {
+        if (target is UniversalUserId) {
+            val user = Users.get(target)
+            user.applyModeModification(modeModification)
+        }
+    }
+
+    @Handler
+    suspend fun nicknameChangeRequested(sender: ServerId, command: SVSNICK) {
 //        if (command.targetUserId.serverId == thisServerId) {
 //            val user = Users.get(command.targetUserId)
 //            user.nickname = command.nickname
 //            user.timestamp = command.timestamp
-//            CentralEventBus.Outgoing.send {
-//                sendAsUser(user.id, NICK(user.nickname, user.timestamp))
-//            }
+//            packetSender.sendAsUser(user.id, NICK(user.nickname, user.timestamp))
 //        }
-        }
+    }
 
-        @Handler
-        suspend fun metadataChange(origin: Origin.Server, command: METADATA) {
-            if (command.target is UniversalUserId) {
-                val user = Users.get(command.target)
-                if (command.value.isNullOrBlank()) {
-                    user.metadata.remove(command.type)
-                } else {
-                    user.metadata[command.type] = command.value
-                }
+    @Handler
+    fun metadataChanged(sender: ServerId, command: METADATA) {
+        if (command.target is UniversalUserId) {
+            val user = Users.get(command.target)
+            if (command.value.isNullOrBlank()) {
+                user.metadata.remove(command.type)
+            } else {
+                user.metadata[command.type] = command.value
             }
         }
+    }
 
-        @Handler
-        suspend fun awayStatusChange(origin: Origin.User, command: AWAY) {
-            val user = Users.get(origin.userId)
-            user.away = command.reason
-        }
+    @Handler
+    fun awayStatusChanged(sender: UniversalUserId, command: AWAY) {
+        val user = Users.get(sender)
+        user.away = command.reason
+    }
 
-        @Handler
-        suspend fun operatorAuth(origin: Origin.User, command: OPERTYPE) {
-            val user = Users.get(origin.userId)
-            user.operType = command.type
-            user.modes.add(Mode('o'))
-        }
+    @Handler
+    fun operatorAuthenticated(sender: UniversalUserId, command: OPERTYPE) {
+        val user = Users.get(sender)
+        user.operType = command.type
+        user.modes.add(Mode('o'))
+    }
 
-        @Handler
-        suspend fun idleTimeRequest(origin: Origin.User, command: IDLE) {
-            val user = Users.get(command.targetUserId)
-            CentralEventBus.Outgoing.send {
-                sendAsUser(user.id, IDLE(origin.userId, user.signonAt, Duration.ZERO))
-            }
-        }
+    @Handler
+    suspend fun userIdleTimeRequestd(sender: UniversalUserId, command: IDLE) {
+        val user = Users.get(command.targetUserId)
+        packetSender.sendAsUser(user.id, IDLE(sender, user.signonAt, Duration.ZERO))
+    }
 
-        @Handler
-        suspend fun quitUser(origin: Origin.User, command: QUIT) {
-            Users.del(origin.userId)
-        }
+    @Handler
+    fun userQuitted(sender: UniversalUserId, command: QUIT) {
+        Users.del(sender)
+    }
 
-        @Handler
-        suspend fun serverDisconnection(origin: Origin.Server, command: SQUIT) {
-            Users.iterate {
-                if (it.id.serverId == command.quittingServerId) {
-                    Users.del(it.id)
-                }
+    @Handler
+    fun anotherServerDisconnected(sender: ServerId, command: SQUIT) {
+        Users.iterate {
+            if (it.id.serverId == command.quittingServerId) {
+                Users.del(it.id)
             }
         }
     }

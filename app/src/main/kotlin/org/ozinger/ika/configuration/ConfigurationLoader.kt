@@ -2,14 +2,11 @@ package org.ozinger.ika.configuration
 
 import com.charleskorn.kaml.Yaml
 import kotlinx.serialization.decodeFromString
-import org.koin.core.component.KoinComponent
 import java.io.File
 
-class ConfigurationLoader(path: String) : KoinComponent {
-    val configuration: Configuration
-
-    init {
+class ConfigurationLoader(private val path: String) {
+    fun load(): Configuration {
         val content = File(path).readText()
-        configuration = Yaml.default.decodeFromString(content)
+        return Yaml.default.decodeFromString(content)
     }
 }

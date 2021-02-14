@@ -4,18 +4,22 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.encodeStructure
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import org.ozinger.ika.definition.Mode
 import org.ozinger.ika.definition.ModeDefinition
 import org.ozinger.ika.definition.ModeModification
 import org.ozinger.ika.definition.Modes
 import org.ozinger.ika.serialization.ModeStringDescriptor
-import kotlin.reflect.KProperty0
+import org.ozinger.ika.state.ModeDefinitionProvider
+import kotlin.reflect.KProperty1
 
-open class ModeModificationSerializer(private val modeProperty: KProperty0<ModeDefinition>) :
-    KSerializer<ModeModification> {
+open class ModeModificationSerializer(private val modeProperty: KProperty1<ModeDefinitionProvider, ModeDefinition>) :
+    KSerializer<ModeModification>, KoinComponent {
     override val descriptor = ModeStringDescriptor("ModeModification")
 
-    protected val modeDefinition by lazy { modeProperty.get() }
+    protected val modeDefinitionProvider: ModeDefinitionProvider by inject()
+    protected val modeDefinition by lazy { modeProperty.get(modeDefinitionProvider) }
 
     override fun serialize(encoder: Encoder, value: ModeModification) = encoder.encodeStructure(descriptor) {
         val values = mutableListOf<String>()
