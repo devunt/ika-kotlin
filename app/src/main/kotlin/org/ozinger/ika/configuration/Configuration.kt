@@ -1,6 +1,7 @@
 package org.ozinger.ika.configuration
 
 import kotlinx.serialization.Serializable
+import org.ozinger.ika.definition.ServerId
 
 @Serializable
 data class Configuration(
@@ -11,7 +12,7 @@ data class Configuration(
     data class ServerConfiguration(
         val name: String,
         val description: String,
-        val id: String,
+        val id: ServerId,
     )
 
     @Serializable
