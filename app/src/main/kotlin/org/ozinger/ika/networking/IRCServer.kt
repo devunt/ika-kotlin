@@ -14,7 +14,6 @@ import org.ozinger.ika.command.SERVER
 import org.ozinger.ika.definition.ServerId
 import org.ozinger.ika.event.PacketReceiver
 import org.ozinger.ika.event.PacketSender
-import java.nio.ByteBuffer
 
 class IRCServer(
     private val id: ServerId,
@@ -47,11 +46,6 @@ class IRCServer(
     }
 
     private suspend fun packetReceivingLoop() {
-        val newlines = listOf(
-            '\r'.toByte(),
-            '\n'.toByte(),
-        )
-
         val reader = socket.openReadChannel()
         while (!reader.isClosedForRead) {
             val line = reader.readUTF8Line()
