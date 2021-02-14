@@ -13,7 +13,7 @@ object Users {
     fun get(userId: UniversalUserId) = users.getValue(userId)
 
     fun iterate(block: (User) -> Unit) {
-        users.forEach { block(it.value) }
+        users.toMutableMap().forEach { block(it.value) }
     }
 
     fun del(userId: UniversalUserId) {
