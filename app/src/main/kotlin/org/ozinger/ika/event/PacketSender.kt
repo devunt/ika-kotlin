@@ -23,8 +23,4 @@ class PacketSender : EventBus(), KoinComponent {
     suspend fun sendAsUser(userId: UniversalUserId, command: Command) {
         put(Packet(userId, command))
     }
-
-//    suspend inline fun send(block: PacketSender.() -> Unit) {
-//        block()
-//    }
 }
