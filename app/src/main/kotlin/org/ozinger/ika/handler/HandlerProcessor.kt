@@ -1,6 +1,5 @@
 package org.ozinger.ika.handler
 
-import kotlinx.coroutines.coroutineScope
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.component.inject
@@ -53,23 +52,27 @@ class HandlerProcessor : KoinComponent {
         BOTH,
     }
 
-    suspend fun collect() = coroutineScope<Unit> {
-        while (true) {
-            val packet = packetReceiver.get()
-            val senderType = when (packet.sender) {
-                is ServerId -> SenderType.SERVER
-                is UniversalUserId -> SenderType.USER
-                null -> SenderType.DIRECT
-                else -> continue
-            }
+    suspend fun handle() {
+        val packet = packetReceiver.get()
+        val senderType = when (packet.sender) {
+            is ServerId -> SenderType.SERVER
+            is UniversalUserId -> SenderType.USER
+            null -> SenderType.DIRECT
+            else -> return
+        }
 
-            map[Pair(senderType, packet.command::class.qualifiedName!!)]?.forEach {
-                val instance = get<AbstractHandler>(named(it.instanceParameter!!.type.toString()))
-                when (senderType) {
-                    SenderType.DIRECT -> it.callSuspend(instance, packet.command)
-                    else -> it.callSuspend(instance, packet.sender, packet.command)
-                }
+        map[Pair(senderType, packet.command::class.qualifiedName!!)]?.forEach {
+            val instance = get<AbstractHandler>(named(it.instanceParameter!!.type.toString()))
+            when (senderType) {
+                SenderType.DIRECT -> it.callSuspend(instance, packet.command)
+                else -> it.callSuspend(instance, packet.sender, packet.command)
             }
+        }
+    }
+
+    suspend fun collect() {
+        while (true) {
+            handle()
         }
     }
 }
