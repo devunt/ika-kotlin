@@ -14,6 +14,7 @@ import org.ozinger.ika.command.SERVER
 import org.ozinger.ika.definition.ServerId
 import org.ozinger.ika.event.PacketReceiver
 import org.ozinger.ika.event.PacketSender
+import java.nio.ByteBuffer
 
 class IRCServer(
     private val id: ServerId,
@@ -46,10 +47,22 @@ class IRCServer(
     }
 
     private suspend fun packetReceivingLoop() {
+        val newline = '\n'.toByte()
         val reader = socket.openReadChannel()
         while (!reader.isClosedForRead) {
-            val line = reader.readUTF8Line()
-            if (line.isNullOrEmpty()) continue
+            val buffer = ByteBuffer.allocate(512)
+            while (true) {
+                when (val b = reader.readByte()) {
+                    newline -> break
+                    else -> buffer.put(b)
+                }
+            }
+
+            val line = String(buffer.array(), 0, buffer.position() - 1, Charsets.UTF_8)
+            if (line.isEmpty()) {
+                continue
+            }
+
             val packet = Serializers.decodePacketFromString(line)
             if (packet.command !is PING) {
                 println(">>> $packet")
