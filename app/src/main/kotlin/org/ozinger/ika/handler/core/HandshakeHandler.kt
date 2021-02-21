@@ -13,7 +13,7 @@ import java.time.ZoneOffset
 @Handler
 class HandshakeHandler : AbstractHandler() {
     private val modeDefinitionProvider: ModeDefinitionProvider by inject()
-    private val prefixPattern = Regex("""(\(\p{Alpha}+?\))""")
+    private val prefixPattern = Regex("""\((\p{Alpha}+?)\)""")
 
     @Handler
     suspend fun handshake(command: SERVER) {
@@ -36,7 +36,7 @@ class HandshakeHandler : AbstractHandler() {
         modeDefinitionProvider.user = ModeDefinition(capabilities["USERMODES"]!!)
         modeDefinitionProvider.member = ModeDefinition(
             listOf(),
-            prefixPattern.find(capabilities["PREFIX"]!!)?.groups?.get(0)?.value?.toList() ?: listOf(),
+            prefixPattern.find(capabilities["PREFIX"]!!)!!.groups[1]!!.value.toList(),
             listOf(),
             listOf()
         )
