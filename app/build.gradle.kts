@@ -25,6 +25,8 @@ dependencies {
     testImplementation("org.koin:koin-test:$koinVersion")
     testImplementation("org.koin:koin-test-junit5:$koinVersion")
     testImplementation("io.mockk:mockk:1.10.6")
+    testImplementation(platform("io.strikt:strikt-bom:0.29.0"))
+    testImplementation("io.strikt:strikt-jvm")
 }
 
 

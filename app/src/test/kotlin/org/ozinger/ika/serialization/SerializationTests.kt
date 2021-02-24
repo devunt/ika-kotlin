@@ -1,25 +1,27 @@
-package org.ozinger.ika.test
+package org.ozinger.ika.serialization
 
 import io.mockk.every
 import kotlinx.serialization.SerializationException
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.koin.test.mock.declareMock
+import org.ozinger.ika.AbstractTest
 import org.ozinger.ika.definition.ModeDefinition
 import org.ozinger.ika.definition.ServerId
 import org.ozinger.ika.definition.UniversalUserId
 import org.ozinger.ika.networking.Serializers
-import org.ozinger.ika.state.ModeDefinitionProvider
+import strikt.api.expectThat
+import strikt.api.expectThrows
+import strikt.assertions.isA
+import strikt.assertions.isEqualTo
+import strikt.assertions.isNull
 
 class SerializationTests : AbstractTest() {
     @BeforeEach
-    fun init() {
-        declareMock<ModeDefinitionProvider> {
+    fun setUp() {
+        declareMock<ModeDefs> {
             every { channel } returns ModeDefinition("Ibeg,k,FJLfjl,ABCDGKMNOPQRSTcimnpstu")
             every { user } returns ModeDefinition(",,s,IRSZcikorwx")
             every { member } returns ModeDefinition(",qaohv,,")
@@ -38,7 +40,7 @@ class SerializationTests : AbstractTest() {
         val decoded = Serializers.decodePacketFromString(value)
         val encoded = Serializers.encodePacketToString(decoded)
 
-        assertEquals(value, encoded)
+        expectThat(encoded).isEqualTo(value)
     }
 
     @ParameterizedTest
@@ -53,7 +55,7 @@ class SerializationTests : AbstractTest() {
         val decoded = Serializers.decodePacketFromString(value)
         val encoded = Serializers.encodePacketToString(decoded)
 
-        assertEquals(value, encoded)
+        expectThat(encoded).isEqualTo(value)
     }
 
     @Test
@@ -61,7 +63,7 @@ class SerializationTests : AbstractTest() {
         val value = "CAPAB START 1202"
         val packet = Serializers.decodePacketFromString(value)
 
-        assertNull(packet.sender)
+        expectThat(packet.sender).isNull()
     }
 
     @Test
@@ -69,7 +71,7 @@ class SerializationTests : AbstractTest() {
         val value = ":2KA FMODE #test 1234 +i"
         val packet = Serializers.decodePacketFromString(value)
 
-        assertEquals(packet.sender!!::class, ServerId::class)
+        expectThat(packet.sender).isA<ServerId>()
     }
 
     @Test
@@ -77,22 +79,22 @@ class SerializationTests : AbstractTest() {
         val value = ":012AAAAAA AWAY :auto-away"
         val packet = Serializers.decodePacketFromString(value)
 
-        assertEquals(packet.sender!!::class, UniversalUserId::class)
+        expectThat(packet.sender).isA<UniversalUserId>()
     }
 
     @Test
     fun `can recognize unacceptable sender`() {
         val value = ":#channel AWAY :auto-away"
 
-        val ex = assertThrows<SerializationException> { Serializers.decodePacketFromString(value) }
-        assertEquals("Only ServerId and UniversalUserId or null can be Packet.sender", ex.message)
+        expectThrows<SerializationException> { Serializers.decodePacketFromString(value) }
+            .get { message }.isEqualTo("Only ServerId and UniversalUserId or null can be Packet.sender")
     }
 
     @Test
     fun `can recognize invalid identifier`() {
         val value = ":1234 AWAY"
 
-        val ex = assertThrows<SerializationException> { Serializers.decodePacketFromString(value) }
-        assertEquals("Invalid identifier", ex.message)
+        expectThrows<SerializationException> { Serializers.decodePacketFromString(value) }
+            .get { message }.isEqualTo("Invalid identifier")
     }
 }

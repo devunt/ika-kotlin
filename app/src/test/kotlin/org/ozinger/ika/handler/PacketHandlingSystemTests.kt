@@ -1,4 +1,4 @@
-package org.ozinger.ika.test
+package org.ozinger.ika.handler
 
 import io.mockk.Called
 import io.mockk.spyk
@@ -9,15 +9,15 @@ import org.junit.jupiter.api.Test
 import org.koin.core.Koin
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import org.ozinger.ika.AbstractTest
 import org.ozinger.ika.command.AWAY
 import org.ozinger.ika.command.ENDBURST
 import org.ozinger.ika.definition.Identifier
 import org.ozinger.ika.definition.ServerId
 import org.ozinger.ika.definition.UniversalUserId
-import org.ozinger.ika.handler.AbstractHandler
-import org.ozinger.ika.handler.HandlerListProvider
+import org.ozinger.ika.networking.Packet
 
-class PacketHandlingSystemTest : AbstractTest() {
+class PacketHandlingSystemTests : AbstractTest() {
     private val testHandler = spyk(TestHandler())
     private val command = AWAY("auto-away")
 
@@ -42,13 +42,13 @@ class PacketHandlingSystemTest : AbstractTest() {
 
     @Test
     fun `can ignore undeclared handler`() = packetTest {
-        receivedDirectly(ENDBURST)
+        assumeAsReceived(Packet(null, ENDBURST))
         verify { testHandler wasNot Called }
     }
 
     @Test
     fun `can handle direct sender`() = packetTest {
-        receivedDirectly(command)
+        assumeAsReceived(Packet(null, command))
         verify { testHandler.direct(command) }
     }
 
@@ -56,7 +56,7 @@ class PacketHandlingSystemTest : AbstractTest() {
     fun `can call server handler`() = packetTest {
         val sender = ServerId("123")
 
-        receviedFromServer(sender, command)
+        assumeAsReceived(Packet(sender, command))
         verifyAll {
             testHandler.server(sender, command)
             testHandler.both(sender, command)
@@ -67,7 +67,7 @@ class PacketHandlingSystemTest : AbstractTest() {
     fun `can call user handler`() = packetTest {
         val sender = UniversalUserId("123ABCDEF")
 
-        receviedFromUser(sender, command)
+        assumeAsReceived(Packet(sender, command))
         verifyAll {
             testHandler.user(sender, command)
             testHandler.both(sender, command)

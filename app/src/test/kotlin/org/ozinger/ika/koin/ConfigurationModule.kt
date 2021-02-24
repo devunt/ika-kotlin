@@ -1,4 +1,4 @@
-package org.ozinger.ika.test
+package org.ozinger.ika.koin
 
 import org.koin.dsl.module
 import org.ozinger.ika.configuration.Configuration
