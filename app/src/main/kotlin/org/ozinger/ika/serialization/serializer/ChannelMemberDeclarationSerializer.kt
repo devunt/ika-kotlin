@@ -7,16 +7,16 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.encodeStructure
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.ozinger.ika.definition.Mode
+import org.ozinger.ika.definition.MemberMode
 import org.ozinger.ika.definition.ModeModification
-import org.ozinger.ika.definition.Modes
+import org.ozinger.ika.definition.MutableModes
+import org.ozinger.ika.serialization.ModeDefs
 import org.ozinger.ika.serialization.ModeStringDescriptor
-import org.ozinger.ika.state.ModeDefinitionProvider
 
 class MemberModeModificationSerializer : KSerializer<ModeModification>, KoinComponent {
     override val descriptor = ModeStringDescriptor("MemberModeModification", trailing = true)
 
-    private val modeDefinitionProvider: ModeDefinitionProvider by inject()
+    private val modeDefs: ModeDefs by inject()
 
     override fun serialize(encoder: Encoder, value: ModeModification) = encoder.encodeStructure(descriptor) {
         val memberModes = mutableMapOf<String, MutableSet<Char>>()
@@ -44,7 +44,7 @@ class MemberModeModificationSerializer : KSerializer<ModeModification>, KoinComp
         for (member in members) {
             val (modes, uuid) = member.split(",")
             for (mode in modes) {
-                if (mode !in modeDefinitionProvider.member.parameterized) {
+                if (mode !in modeDefs.member.parameterized) {
                     throw SerializationException("Invalid member mode: $mode")
                 }
                 adding.add(Mode(mode, uuid).apply { isMemberMode = true })

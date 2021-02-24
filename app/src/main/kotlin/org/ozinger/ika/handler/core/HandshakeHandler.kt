@@ -6,13 +6,13 @@ import org.ozinger.ika.command.*
 import org.ozinger.ika.definition.ModeDefinition
 import org.ozinger.ika.enumeration.CapabilityType
 import org.ozinger.ika.handler.AbstractHandler
-import org.ozinger.ika.state.ModeDefinitionProvider
+import org.ozinger.ika.serialization.ModeDefs
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
 @Handler
 class HandshakeHandler : AbstractHandler() {
-    private val modeDefinitionProvider: ModeDefinitionProvider by inject()
+    private val modeDefs: ModeDefs by inject()
     private val prefixPattern = Regex("""\((\p{Alpha}+?)\)""")
 
     @Handler
@@ -32,9 +32,10 @@ class HandshakeHandler : AbstractHandler() {
 
         val capabilities =
             command.value!!.split(" ").map { it.split("=", limit = 2) }.associateBy({ it[0] }, { it[1] })
-        modeDefinitionProvider.channel = ModeDefinition(capabilities["CHANMODES"]!!)
-        modeDefinitionProvider.user = ModeDefinition(capabilities["USERMODES"]!!)
-        modeDefinitionProvider.member = ModeDefinition(
+
+        modeDefs.channel = ModeDefinition(capabilities["CHANMODES"]!!)
+        modeDefs.user = ModeDefinition(capabilities["USERMODES"]!!)
+        modeDefs.member = ModeDefinition(
             listOf(),
             prefixPattern.find(capabilities["PREFIX"]!!)!!.groups[1]!!.value.toList(),
             listOf(),
