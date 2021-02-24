@@ -1,4 +1,4 @@
-package org.ozinger.ika.definition
+package org.ozinger.ika.enumeration
 
 import kotlinx.serialization.Serializable
 import org.ozinger.ika.serialization.serializer.EnumValueSerializer

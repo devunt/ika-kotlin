@@ -7,11 +7,10 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import org.ozinger.ika.definition.*
-import org.ozinger.ika.serialization.serializer.DurationSerializer
-import org.ozinger.ika.serialization.serializer.LocalDateTimeSerializer
-import org.ozinger.ika.serialization.serializer.MemberModeModificationSerializer
-import org.ozinger.ika.serialization.serializer.ModeModificationSerializer
-import org.ozinger.ika.state.ModeDefinitionProvider
+import org.ozinger.ika.enumeration.CapabilityType
+import org.ozinger.ika.enumeration.OperType
+import org.ozinger.ika.enumeration.XLineType
+import org.ozinger.ika.serialization.serializer.*
 import java.time.Duration
 import java.time.LocalDateTime
 

@@ -3,8 +3,8 @@ package org.ozinger.ika.handler.core
 import org.koin.core.component.inject
 import org.ozinger.ika.annotation.Handler
 import org.ozinger.ika.command.*
-import org.ozinger.ika.definition.CapabilityType
 import org.ozinger.ika.definition.ModeDefinition
+import org.ozinger.ika.enumeration.CapabilityType
 import org.ozinger.ika.handler.AbstractHandler
 import org.ozinger.ika.state.ModeDefinitionProvider
 import java.time.LocalDateTime

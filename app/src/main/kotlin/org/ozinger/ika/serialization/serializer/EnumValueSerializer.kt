@@ -5,7 +5,7 @@ import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import org.ozinger.ika.definition.ValuedEnum
+import org.ozinger.ika.enumeration.ValuedEnum
 import kotlin.reflect.KClass
 
 open class EnumValueSerializer<E>(
