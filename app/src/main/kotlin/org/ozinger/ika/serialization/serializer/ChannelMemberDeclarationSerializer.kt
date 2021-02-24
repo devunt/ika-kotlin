@@ -13,17 +13,17 @@ import org.ozinger.ika.definition.MutableModes
 import org.ozinger.ika.serialization.ModeDefs
 import org.ozinger.ika.serialization.ModeStringDescriptor
 
-class MemberModeModificationSerializer : KSerializer<ModeModification>, KoinComponent {
-    override val descriptor = ModeStringDescriptor("MemberModeModification", trailing = true)
+class ChannelMemberDeclarationSerializer : KSerializer<ModeModification>, KoinComponent {
+    override val descriptor = ModeStringDescriptor("ChannelMemberDeclaration", trailing = true)
 
     private val modeDefs: ModeDefs by inject()
 
     override fun serialize(encoder: Encoder, value: ModeModification) = encoder.encodeStructure(descriptor) {
         val memberModes = mutableMapOf<String, MutableSet<Char>>()
 
-        value.adding?.forEach { mode ->
-            val set = memberModes.getOrPut(mode.param!!, ::mutableSetOf)
-            if (mode.mode != ' ') set.add(mode.mode)
+        value.adding.filterIsInstance<MemberMode>().forEach { mode ->
+            val set = memberModes.getOrPut(mode.target.value, ::mutableSetOf)
+            mode.mode?.let { set.add(it) }
         }
 
         val memberString = memberModes.map { (uuid, modes) ->
@@ -38,7 +38,7 @@ class MemberModeModificationSerializer : KSerializer<ModeModification>, KoinComp
     }
 
     override fun deserialize(decoder: Decoder): ModeModification {
-        val adding: Modes = mutableSetOf()
+        val adding: MutableModes = mutableSetOf()
 
         val members = decoder.decodeString().split(" ")
         for (member in members) {
@@ -47,10 +47,10 @@ class MemberModeModificationSerializer : KSerializer<ModeModification>, KoinComp
                 if (mode !in modeDefs.member.parameterized) {
                     throw SerializationException("Invalid member mode: $mode")
                 }
-                adding.add(Mode(mode, uuid).apply { isMemberMode = true })
+                adding.add(MemberMode(uuid, mode))
             }
             if (modes.isEmpty()) {
-                adding.add(Mode(' ', uuid).apply { isMemberMode = true })
+                adding.add(MemberMode(uuid))
             }
         }
 

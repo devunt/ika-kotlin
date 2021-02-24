@@ -11,7 +11,7 @@ import org.ozinger.ika.serialization.ModeDefs
 import org.ozinger.ika.serialization.ModeStringDescriptor
 import kotlin.reflect.KProperty1
 
-open class ModeModificationSerializer(private val modeProperty: KProperty1<ModeDefinitionProvider, ModeDefinition>) :
+sealed class ModeModificationSerializer(private val modeProperty: KProperty1<ModeDefs, ModeDefinition>) :
     KSerializer<ModeModification>, KoinComponent {
     override val descriptor = ModeStringDescriptor("ModeModification")
 
@@ -23,12 +23,20 @@ open class ModeModificationSerializer(private val modeProperty: KProperty1<ModeD
 
         val sb = StringBuilder()
 
-        val f = { op: Char, modes: Set<Mode>? ->
-            if (!modes.isNullOrEmpty()) {
+        val f = { op: Char, modes: Modes ->
+            if (modes.isNotEmpty()) {
                 sb.append(op)
                 modes.forEach { mode ->
-                    sb.append(mode.mode)
-                    mode.param?.let { values.add(it) }
+                    when (mode) {
+                        is Mode -> {
+                            sb.append(mode.mode)
+                            mode.param?.let { values.add(it) }
+                        }
+                        is MemberMode -> {
+                            sb.append(mode.mode)
+                            values.add(mode.target.value)
+                        }
+                    }
                 }
             }
         }
@@ -36,14 +44,18 @@ open class ModeModificationSerializer(private val modeProperty: KProperty1<ModeD
         f('+', value.adding)
         f('-', value.removing)
 
+        if (sb.isEmpty()) {
+            sb.append('+')
+        }
+
         values.add(0, sb.toString())
 
         encodeStringElement(descriptor, 0, values.joinToString(" "))
     }
 
     override fun deserialize(decoder: Decoder): ModeModification {
-        val adding: Modes = mutableSetOf()
-        val removing: Modes = mutableSetOf()
+        val adding: MutableModes = mutableSetOf()
+        val removing: MutableModes = mutableSetOf()
         var current = adding
 
         val modeString = decoder.decodeString()
@@ -52,8 +64,17 @@ open class ModeModificationSerializer(private val modeProperty: KProperty1<ModeD
                 '+' -> current = adding
                 '-' -> current = removing
                 else -> {
-                    if (c in modeDefinition.stackable || c in modeDefinition.parameterized || (current == adding && c in modeDefinition.parameterizedAdd)) {
-                        current.add(Mode(c, decoder.decodeString()))
+                    if (c in modeDefinition.stackable ||
+                        c in modeDefinition.parameterized ||
+                        (modeDefinition == modeDefs.channel && c in modeDefs.member.parameterized) ||
+                        (current == adding && c in modeDefinition.parameterizedAdd)
+                    ) {
+                        val param = decoder.decodeString()
+                        try {
+                            current.add(MemberMode(param, c))
+                        } catch (e: IllegalIdentifierException) {
+                            current.add(Mode(c, param))
+                        }
                     } else {
                         current.add(Mode(c))
                     }
@@ -64,3 +85,6 @@ open class ModeModificationSerializer(private val modeProperty: KProperty1<ModeD
         return ModeModification(adding, removing)
     }
 }
+
+object ChannelModeModificationSerializer : ModeModificationSerializer(ModeDefs::channel)
+object UserModeModificationSerializer : ModeModificationSerializer(ModeDefs::user)

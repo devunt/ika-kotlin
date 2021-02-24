@@ -1,17 +1,25 @@
 package org.ozinger.ika.definition
 
+interface IMode
+
 data class Mode(
     val mode: Char,
     val param: String? = null,
-) {
-    var isMemberMode = false
+) : IMode
+
+data class MemberMode(
+    val target: UniversalUserId,
+    val mode: Char? = null,
+) : IMode {
+    constructor(target: String, mode: Char? = null) : this(UniversalUserId(target), mode)
 }
 
-typealias Modes = MutableSet<Mode>
+typealias MutableModes = MutableSet<IMode>
+typealias Modes = Set<IMode>
 
 data class ModeModification(
-    val adding: Set<Mode>? = null,
-    val removing: Set<Mode>? = null,
+    val adding: Modes = setOf(),
+    val removing: Modes = setOf(),
 )
 
 data class ModeDefinition(

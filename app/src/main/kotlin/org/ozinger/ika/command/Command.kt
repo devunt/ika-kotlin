@@ -14,9 +14,6 @@ import org.ozinger.ika.serialization.serializer.*
 import java.time.Duration
 import java.time.LocalDateTime
 
-object ChannelModeModificationSerializer : ModeModificationSerializer(ModeDefinitionProvider::channel)
-object UserModeModificationSerializer : ModeModificationSerializer(ModeDefinitionProvider::user)
-
 @Serializable
 sealed class Command {
     override fun toString() = this::class.simpleName!!
@@ -112,7 +109,7 @@ data class FJOIN(
     val channelName: ChannelName,
     val timestamp: LocalDateTime,
     @Serializable(with = ChannelModeModificationSerializer::class) val channelModeModification: ModeModification,
-    @Serializable(with = MemberModeModificationSerializer::class) val memberModeModification: ModeModification,
+    @Serializable(with = ChannelMemberDeclarationSerializer::class) val memberModeModification: ModeModification,
 ) :
     Command()
 
