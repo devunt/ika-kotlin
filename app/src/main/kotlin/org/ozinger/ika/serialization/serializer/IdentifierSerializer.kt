@@ -19,7 +19,7 @@ class IdentifierSerializer : KSerializer<Identifier> {
         val value = decoder.decodeString()
 
         return when {
-            value == "*" -> Wildcard()
+            value == "*" -> Wildcard
             value.startsWith('#') -> {
                 context = channelContext; ChannelName(value)
             }

@@ -3,20 +3,30 @@ package org.ozinger.ika.definition
 import kotlinx.serialization.Serializable
 import org.ozinger.ika.serialization.serializer.IdentifierSerializer
 
+class IllegalIdentifierException(cause: Throwable) : IllegalArgumentException(cause)
+
 @Serializable(with = IdentifierSerializer::class)
 sealed class Identifier(open val value: String)
 
 @Serializable(with = IdentifierSerializer::class)
 data class ServerId(override val value: String) : Identifier(value) {
     init {
-        require(Regex("[0-9][A-Z0-9]{2}").matches(value))
+        try {
+            require(Regex("[0-9][A-Z0-9]{2}").matches(value))
+        } catch (ex: IllegalArgumentException) {
+            throw IllegalIdentifierException(ex)
+        }
     }
 }
 
 @Serializable(with = IdentifierSerializer::class)
 data class ServerUserId(override val value: String) : Identifier(value) {
     init {
-        require(Regex("[A-Z][A-Z0-9]{5}").matches(value))
+        try {
+            require(Regex("[A-Z][A-Z0-9]{5}").matches(value))
+        } catch (ex: IllegalArgumentException) {
+            throw IllegalIdentifierException(ex)
+        }
     }
 }
 
@@ -32,9 +42,13 @@ data class UniversalUserId(override val value: String) : Identifier(value) {
 @Serializable(with = IdentifierSerializer::class)
 data class ChannelName(override val value: String) : Identifier(value) {
     init {
-        require(value.startsWith('#'))
+        try {
+            require(value.startsWith('#'))
+        } catch (ex: IllegalArgumentException) {
+            throw IllegalIdentifierException(ex)
+        }
     }
 }
 
 @Serializable(with = IdentifierSerializer::class)
-data class Wildcard(override val value: String = "*") : Identifier(value)
+object Wildcard : Identifier("*")
