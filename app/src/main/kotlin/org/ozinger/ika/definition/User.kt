@@ -1,5 +1,6 @@
 package org.ozinger.ika.definition
 
+import org.ozinger.ika.enumeration.OperType
 import java.time.LocalDateTime
 
 data class User(
@@ -13,22 +14,23 @@ data class User(
     val signonAt: LocalDateTime,
     var realname: String,
 ) : AbstractIRCEntity() {
-    val mask: String
-        get() = "$nickname!$ident@$displayedHost"
-
+    var isLocal: Boolean = false
     var operType: OperType? = null
-    var away: String? = null
+    var awayReason: String? = null
+    val memberOf = mutableSetOf<Member>()
 
-    val joinedChannels = mutableSetOf<ChannelName>()
+    val mask get() = "$nickname!$ident@$displayedHost"
+    val isOperator get() = operType != null
+    val isOnAway get() = awayReason != null
 
     fun shouldBeApplied(other: LocalDateTime) = timestamp >= other
 
     override fun applyModeModification(modeModification: ModeModification) {
-        modeModification.adding?.forEach {
+        modeModification.adding.forEach {
             modes.add(it)
         }
 
-        modeModification.removing?.forEach {
+        modeModification.removing.forEach {
             modes.remove(it)
         }
     }

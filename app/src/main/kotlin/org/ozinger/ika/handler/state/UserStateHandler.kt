@@ -4,14 +4,13 @@ import org.ozinger.ika.annotation.Handler
 import org.ozinger.ika.command.*
 import org.ozinger.ika.definition.*
 import org.ozinger.ika.handler.AbstractHandler
-import org.ozinger.ika.state.Users
 import java.time.Duration
 
 @Handler
 class UserStateHandler : AbstractHandler() {
     @Handler
     fun userConnected(sender: ServerId, command: UID) {
-        Users.add(
+        userStore.add(
             User(
                 command.userId,
                 command.timestamp,
@@ -24,25 +23,26 @@ class UserStateHandler : AbstractHandler() {
                 command.realname,
             ).apply {
                 applyModeModification(command.modeModification)
+                isLocal = command.userId.serverId == configuration.server.id
             }
         )
     }
 
     @Handler
     fun nicknameChanged(sender: UniversalUserId, command: NICK) {
-        val user = Users.get(sender)
+        val user = userStore.get(sender)
         user.nickname = command.nickname
     }
 
     @Handler
     fun displayedHostChanged(sender: UniversalUserId, command: FHOST) {
-        val user = Users.get(sender)
+        val user = userStore.get(sender)
         user.displayedHost = command.displayedHost
     }
 
     @Handler
     fun realnameChanged(sender: UniversalUserId, command: FNAME) {
-        val user = Users.get(sender)
+        val user = userStore.get(sender)
         user.realname = command.realname
     }
 
@@ -58,25 +58,25 @@ class UserStateHandler : AbstractHandler() {
 
     private fun applyModeModifitication(target: Identifier, modeModification: ModeModification) {
         if (target is UniversalUserId) {
-            val user = Users.get(target)
+            val user = userStore.get(target)
             user.applyModeModification(modeModification)
         }
     }
 
     @Handler
     suspend fun nicknameChangeRequested(sender: ServerId, command: SVSNICK) {
-//        if (command.targetUserId.serverId == thisServerId) {
-//            val user = Users.get(command.targetUserId)
-//            user.nickname = command.nickname
-//            user.timestamp = command.timestamp
-//            packetSender.sendAsUser(user.id, NICK(user.nickname, user.timestamp))
-//        }
+        val user = userStore.get(command.targetUserId)
+        if (user.isLocal) {
+            user.nickname = command.nickname
+            user.timestamp = command.timestamp
+            packetSender.sendAsUser(user.id, NICK(user.nickname, user.timestamp))
+        }
     }
 
     @Handler
     fun metadataChanged(sender: ServerId, command: METADATA) {
         if (command.target is UniversalUserId) {
-            val user = Users.get(command.target)
+            val user = userStore.get(command.target)
             if (command.value.isNullOrBlank()) {
                 user.metadata.remove(command.type)
             } else {
@@ -87,33 +87,35 @@ class UserStateHandler : AbstractHandler() {
 
     @Handler
     fun awayStatusChanged(sender: UniversalUserId, command: AWAY) {
-        val user = Users.get(sender)
-        user.away = command.reason
+        val user = userStore.get(sender)
+        user.awayReason = command.reason
     }
 
     @Handler
     fun operatorAuthenticated(sender: UniversalUserId, command: OPERTYPE) {
-        val user = Users.get(sender)
+        val user = userStore.get(sender)
         user.operType = command.type
         user.modes.add(Mode('o'))
     }
 
     @Handler
-    suspend fun userIdleTimeRequestd(sender: UniversalUserId, command: IDLE) {
-        val user = Users.get(command.targetUserId)
-        packetSender.sendAsUser(user.id, IDLE(sender, user.signonAt, Duration.ZERO))
+    suspend fun userIdleTimeRequested(sender: UniversalUserId, command: IDLE) {
+        val user = userStore.get(command.targetUserId)
+        if (user.isLocal) {
+            packetSender.sendAsUser(user.id, IDLE(sender, user.signonAt, Duration.ZERO))
+        }
     }
 
     @Handler
     fun userQuitted(sender: UniversalUserId, command: QUIT) {
-        Users.del(sender)
+        userStore.del(sender)
     }
 
     @Handler
-    fun anotherServerDisconnected(sender: ServerId, command: SQUIT) {
-        Users.iterate {
+    fun serverNetSplitted(sender: ServerId, command: SQUIT) {
+        userStore.iterateCopy {
             if (it.id.serverId == command.quittingServerId) {
-                Users.del(it.id)
+                userStore.del(it.id)
             }
         }
     }

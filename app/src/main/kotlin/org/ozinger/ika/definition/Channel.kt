@@ -6,8 +6,12 @@ data class Channel(
     val name: ChannelName,
     var timestamp: LocalDateTime,
 ) : AbstractIRCEntity() {
-    val members = mutableMapOf<UniversalUserId, Member>()
+    private val members = mutableMapOf<UniversalUserId, Member>()
     var topic = Topic("", null, null)
+
+    val isEmpty get() = members.isEmpty()
+
+    fun getMember(userId: UniversalUserId) = members.getValue(userId)
 
     fun shouldBeApplied(other: LocalDateTime) = timestamp >= other
 
