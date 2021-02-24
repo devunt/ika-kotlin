@@ -6,7 +6,7 @@ data class Channel(
     val name: ChannelName,
     var timestamp: LocalDateTime,
 ) : AbstractIRCEntity() {
-    private val members = mutableMapOf<UniversalUserId, Member>()
+    val members = mutableMapOf<UniversalUserId, Member>()
     var topic = Topic("", null, null)
 
     val isEmpty get() = members.isEmpty()
@@ -26,7 +26,7 @@ data class Channel(
         modeModification.removing.forEach { mode ->
             when (mode) {
                 is Mode -> modes.remove(mode)
-                is MemberMode -> members[mode.target]!!.removeMode(mode)
+                is MemberMode -> members.getValue(mode.target).removeMode(mode)
             }
         }
     }

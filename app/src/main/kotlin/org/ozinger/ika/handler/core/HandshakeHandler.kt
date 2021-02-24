@@ -33,11 +33,11 @@ class HandshakeHandler : AbstractHandler() {
         val capabilities =
             command.value!!.split(" ").map { it.split("=", limit = 2) }.associateBy({ it[0] }, { it[1] })
 
-        modeDefs.channel = ModeDefinition(capabilities["CHANMODES"]!!)
-        modeDefs.user = ModeDefinition(capabilities["USERMODES"]!!)
+        modeDefs.channel = ModeDefinition(capabilities.getValue("CHANMODES"))
+        modeDefs.user = ModeDefinition(capabilities.getValue("USERMODES"))
         modeDefs.member = ModeDefinition(
             listOf(),
-            prefixPattern.find(capabilities["PREFIX"]!!)!!.groups[1]!!.value.toList(),
+            prefixPattern.find(capabilities.getValue("PREFIX"))!!.groups[1]!!.value.toList(),
             listOf(),
             listOf()
         )

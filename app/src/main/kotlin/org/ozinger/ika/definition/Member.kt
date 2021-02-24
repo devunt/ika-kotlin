@@ -32,7 +32,7 @@ data class Member(
     fun leave() {
         user.memberOf.remove(this)
         channel.members.remove(universalUserId)
-        if (channel.members.isEmpty()) {
+        if (channel.isEmpty) {
             channelStore.del(channelName)
         }
     }

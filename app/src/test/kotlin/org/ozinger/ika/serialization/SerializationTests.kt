@@ -34,6 +34,7 @@ class SerializationTests : AbstractTest() {
             ":012 FJOIN #test 1234 +Snstk 1234 :ov,012AAAAAA qaov,012AAAAAB",
             ":2KA FMODE #test 1234 +kKj secret 10:5",
             ":012 FMODE #test 1234 +bb baduser!*@* *!*@*.badhost.com",
+            ":012 FMODE #test 1234 +",
         ]
     )
     fun `can handle various modes`(value: String) {
