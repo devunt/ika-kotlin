@@ -2,7 +2,7 @@ package org.ozinger.ika.handler.core
 
 import org.junit.jupiter.api.Test
 import org.koin.core.component.inject
-import org.ozinger.ika.AbstractTest
+import org.ozinger.ika.AbstractPacketTest
 import org.ozinger.ika.command.*
 import org.ozinger.ika.definition.ModeDefinition
 import org.ozinger.ika.enumeration.CapabilityType
@@ -14,11 +14,11 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.withElementAt
 
-class HandshakeHandlerTests : AbstractTest() {
+class HandshakeHandlerTests : AbstractPacketTest() {
     private val modeDefs: ModeDefs by inject()
 
     @Test
-    fun handshake() = packetTest {
+    fun handshake() {
         assumeAsReceived(
             Packet(
                 null, SERVER(
@@ -39,7 +39,7 @@ class HandshakeHandlerTests : AbstractTest() {
     }
 
     @Test
-    fun `handle capability`() = packetTest {
+    fun `handle capability`() {
         assumeAsReceivedSequencially(
             Packet(null, CAPAB(CapabilityType.START, "1202")),
             Packet(

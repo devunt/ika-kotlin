@@ -22,7 +22,9 @@ data class Member(
     }
 
     fun addMode(mode: MemberMode) {
-        modes.add(mode)
+        if (mode.mode != null) {
+            modes.add(mode)
+        }
     }
 
     fun removeMode(mode: MemberMode) {

@@ -2,7 +2,7 @@ package org.ozinger.ika.handler.state
 
 import org.junit.jupiter.api.Test
 import org.koin.core.component.inject
-import org.ozinger.ika.AbstractTest
+import org.ozinger.ika.AbstractPacketTest
 import org.ozinger.ika.command.*
 import org.ozinger.ika.definition.Mode
 import org.ozinger.ika.definition.ModeModification
@@ -17,51 +17,47 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
-class UserStateHandlerTests : AbstractTest() {
+class UserStateHandlerTests : AbstractPacketTest() {
     private val userStore: UserStore by inject()
     private val timestamp = LocalDateTime.now(ZoneOffset.UTC)
 
     private fun connectLocalUser1(): User {
-        packetTest {
-            assumeAsReceived(
-                Packet(
-                    configuration.server.id, UID(
-                        userId = localUser1Id,
-                        timestamp = timestamp,
-                        nickname = "User1",
-                        host = "1.1.1.1",
-                        displayedHost = "1.1.1.1",
-                        ident = "user1",
-                        ipAddress = "1.1.1.1",
-                        signonAt = timestamp,
-                        modeModification = ModeModification(),
-                        realname = "User #1"
-                    )
+        assumeAsReceived(
+            Packet(
+                configuration.server.id, UID(
+                    userId = localUser1Id,
+                    timestamp = timestamp,
+                    nickname = "User1",
+                    host = "1.1.1.1",
+                    displayedHost = "1.1.1.1",
+                    ident = "user1",
+                    ipAddress = "1.1.1.1",
+                    signonAt = timestamp,
+                    modeModification = ModeModification(),
+                    realname = "User #1"
                 )
             )
-        }
+        )
         return userStore.get(localUser1Id)
     }
 
     private fun connectRemoteUser2(): User {
-        packetTest {
-            assumeAsReceived(
-                Packet(
-                    remoteServerId, UID(
-                        userId = remoteUser2Id,
-                        timestamp = timestamp,
-                        nickname = "User2",
-                        host = "2.2.2.2",
-                        displayedHost = "2.2.2.2",
-                        ident = "user2",
-                        ipAddress = "2.2.2.2",
-                        signonAt = timestamp,
-                        modeModification = ModeModification(),
-                        realname = "User #2"
-                    )
+        assumeAsReceived(
+            Packet(
+                remoteServerId, UID(
+                    userId = remoteUser2Id,
+                    timestamp = timestamp,
+                    nickname = "User2",
+                    host = "2.2.2.2",
+                    displayedHost = "2.2.2.2",
+                    ident = "user2",
+                    ipAddress = "2.2.2.2",
+                    signonAt = timestamp,
+                    modeModification = ModeModification(),
+                    realname = "User #2"
                 )
             )
-        }
+        )
         return userStore.get(remoteUser2Id)
     }
 
@@ -112,41 +108,41 @@ class UserStateHandlerTests : AbstractTest() {
     }
 
     @Test
-    fun `user1 nickname changed`() = packetTest {
+    fun `user1 nickname changed`() {
         val user1 = connectLocalUser1()
         assumeAsReceived(Packet(user1.id, NICK("User1-1", timestamp)))
         expectThat(user1.nickname).isEqualTo("User1-1")
     }
 
     @Test
-    fun `user1 displayedHost changed`() = packetTest {
+    fun `user1 displayedHost changed`() {
         val user1 = connectLocalUser1()
         assumeAsReceived(Packet(user1.id, FHOST("1.1.1.2")))
         expectThat(user1.displayedHost).isEqualTo("1.1.1.2")
     }
 
     @Test
-    fun `user1 realname changed`() = packetTest {
+    fun `user1 realname changed`() {
         val user1 = connectLocalUser1()
         assumeAsReceived(Packet(user1.id, FNAME("User #1-1")))
         expectThat(user1.realname).isEqualTo("User #1-1")
     }
 
     @Test
-    fun `user1 metadata changed`() = packetTest {
+    fun `user1 metadata changed`() {
         val user1 = connectLocalUser1()
 
         assumeAsReceived(Packet(remoteServerId, METADATA(user1.id, "accountname", "user_1")))
         expectThat(user1.metadata)
             .hasSize(1)
-            .withValue("accountname") { isEqualTo("user_1") }
+            .hasEntry("accountname", "user_1")
 
         assumeAsReceived(Packet(remoteServerId, METADATA(user1.id, "accountname")))
         expectThat(user1.metadata).isEmpty()
     }
 
     @Test
-    fun `user1 away status changed`() = packetTest {
+    fun `user1 away status changed`() {
         val user1 = connectLocalUser1()
 
         assumeAsReceived(Packet(user1.id, AWAY("auto-away")))
@@ -160,7 +156,7 @@ class UserStateHandlerTests : AbstractTest() {
     }
 
     @Test
-    fun `user1 operator authenticated`() = packetTest {
+    fun `user1 operator authenticated`() {
         val user1 = connectLocalUser1()
 
         expectThat(user1) {
@@ -177,7 +173,7 @@ class UserStateHandlerTests : AbstractTest() {
     }
 
     @Test
-    fun `user1 changed itself's mode`() = packetTest {
+    fun `user1 changed itself's mode`() {
         val user1 = connectLocalUser1()
 
         expectThat(user1.modes).isEmpty()
@@ -191,7 +187,7 @@ class UserStateHandlerTests : AbstractTest() {
     }
 
     @Test
-    fun `user1 changed user2's mode`() = packetTest {
+    fun `user1 changed user2's mode`() {
         val user1 = connectLocalUser1()
         val user2 = connectRemoteUser2()
 
@@ -206,7 +202,7 @@ class UserStateHandlerTests : AbstractTest() {
     }
 
     @Test
-    fun `server changed user1's mode`() = packetTest {
+    fun `server changed user1's mode`() {
         val user1 = connectLocalUser1()
 
         expectThat(user1.modes).isEmpty()
@@ -225,7 +221,7 @@ class UserStateHandlerTests : AbstractTest() {
     }
 
     @Test
-    fun `nickname change requested`() = packetTest {
+    fun `nickname change requested`() {
         val user1 = connectLocalUser1()
 
         assumeAsReceived(Packet(remoteServerId, SVSNICK(user1.id, "user1-svsnick", timestamp))) {
@@ -237,7 +233,7 @@ class UserStateHandlerTests : AbstractTest() {
     }
 
     @Test
-    fun `user2 requested user1's idle time`() = packetTest {
+    fun `user2 requested user1's idle time`() {
         val user1 = connectLocalUser1()
         val user2 = connectRemoteUser2()
 
@@ -250,7 +246,7 @@ class UserStateHandlerTests : AbstractTest() {
     }
 
     @Test
-    fun `user1 quitted`() = packetTest {
+    fun `user1 quitted`() {
         val user1 = connectLocalUser1()
         expectThat(userStore.exists(user1.id)).isTrue()
         assumeAsReceived(Packet(user1.id, QUIT()))
@@ -258,7 +254,7 @@ class UserStateHandlerTests : AbstractTest() {
     }
 
     @Test
-    fun `server net-splitted`() = packetTest {
+    fun `server net-splitted`() {
         val user1 = connectLocalUser1()
         val user2 = connectRemoteUser2()
         assumeAsReceived(Packet(remoteServerId, SQUIT(remoteServerId, "")))

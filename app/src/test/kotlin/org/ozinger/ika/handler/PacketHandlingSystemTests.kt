@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 import org.koin.core.Koin
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
-import org.ozinger.ika.AbstractTest
+import org.ozinger.ika.AbstractPacketTest
 import org.ozinger.ika.command.AWAY
 import org.ozinger.ika.command.ENDBURST
 import org.ozinger.ika.definition.Identifier
@@ -17,7 +17,7 @@ import org.ozinger.ika.definition.ServerId
 import org.ozinger.ika.definition.UniversalUserId
 import org.ozinger.ika.networking.Packet
 
-class PacketHandlingSystemTests : AbstractTest() {
+class PacketHandlingSystemTests : AbstractPacketTest() {
     private val testHandler = spyk(TestHandler())
     private val command = AWAY("auto-away")
 
@@ -41,19 +41,19 @@ class PacketHandlingSystemTests : AbstractTest() {
     }
 
     @Test
-    fun `can ignore undeclared handler`() = packetTest {
+    fun `can ignore undeclared handler`() {
         assumeAsReceived(Packet(null, ENDBURST))
         verify { testHandler wasNot Called }
     }
 
     @Test
-    fun `can handle direct sender`() = packetTest {
+    fun `can handle direct sender`() {
         assumeAsReceived(Packet(null, command))
         verify { testHandler.direct(command) }
     }
 
     @Test
-    fun `can call server handler`() = packetTest {
+    fun `can call server handler`() {
         val sender = ServerId("123")
 
         assumeAsReceived(Packet(sender, command))
@@ -64,7 +64,7 @@ class PacketHandlingSystemTests : AbstractTest() {
     }
 
     @Test
-    fun `can call user handler`() = packetTest {
+    fun `can call user handler`() {
         val sender = UniversalUserId("123ABCDEF")
 
         assumeAsReceived(Packet(sender, command))
