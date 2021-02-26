@@ -74,6 +74,7 @@ class PacketHandlingSystemTests : AbstractPacketTest() {
         }
     }
 
+    @Suppress("UNUSED_PARAMETER")
     inner class TestHandler : AbstractHandler() {
         fun direct(command: AWAY) {
         }

@@ -8,6 +8,7 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 
 @Handler
+@Suppress("UNUSED_PARAMETER")
 class ChannelStateHandler : AbstractHandler() {
     @Handler
     fun userJoinedChannel(sender: ServerId, command: FJOIN) {

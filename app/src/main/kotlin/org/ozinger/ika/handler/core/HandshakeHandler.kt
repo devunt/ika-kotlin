@@ -11,6 +11,7 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 
 @Handler
+@Suppress("UNUSED_PARAMETER")
 class HandshakeHandler : AbstractHandler() {
     private val modeDefs: ModeDefs by inject()
     private val prefixPattern = Regex("""\((\p{Alpha}+?)\)""")

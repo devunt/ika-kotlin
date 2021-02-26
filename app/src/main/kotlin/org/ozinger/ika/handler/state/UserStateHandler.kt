@@ -7,6 +7,7 @@ import org.ozinger.ika.handler.AbstractHandler
 import java.time.Duration
 
 @Handler
+@Suppress("UNUSED_PARAMETER")
 class UserStateHandler : AbstractHandler() {
     @Handler
     fun userConnected(sender: ServerId, command: UID) {

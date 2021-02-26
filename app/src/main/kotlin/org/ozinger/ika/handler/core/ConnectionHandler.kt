@@ -8,6 +8,7 @@ import org.ozinger.ika.definition.ServerId
 import org.ozinger.ika.handler.AbstractHandler
 
 @Handler
+@Suppress("UNUSED_PARAMETER")
 class ConnectionHandler : AbstractHandler() {
     @Handler
     suspend fun pingpong(sender: ServerId, command: PING) {
